@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body,html{
+           width: 100%;
+           height: 100%;
+           padding: 0;
+           margin: 0;
+       }
+       #container{
+           width: 100%;
+           height: 100%;
+           overflow: hidden;
+       }
+       #result{
+           position: fixed;
+           top: 10px;
+           right: 10px;
+           padding: 0px 7px;
+           min-width: 300px;
+           height: 70px;
+           line-height: 35px;
+           background: #fff;
+           box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+           border-radius: 7px;
+           z-index: 99;
+       }
+       .BMap_cpyCtrl {
+            display: none;
+        }
+
+        .anchorBL {
+            display: none;
+        }
+        </style>
+
+    <!-- 引入百度地图api -->
+    <script src="https://api.map.baidu.com/api?v=1.0&type=webgl&ak=hlIMPlOmAGq65NyonNFC7o5tSBvI7FF4"></script>
+    <!-- <script src="./node_modules/_mapvgl@1.0.0-beta.119@mapvgl/dist/mapvgl.min.js"></script> -->
+    <script src="https://code.bdstatic.com/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+    
+</head>
+<body>
+    <div id='container'></div>
+    <div id='result'>
+        点击选择地址：
+        <div id='result_l'>
+            
+        </div>
+    </div>
+    <script>
+        // 获取当前用户iP所在的城市
+        var myCity=new BMapGL.LocalCity();
+
+        var map = new BMapGL.Map('container');
+        // 开启地图的滚轮缩放
+        map.enableScrollWheelZoom(true);
+        var cityCtrl = new BMapGL.CityListControl();  // 左上方，添加城市列表控件
+        map.addControl(cityCtrl);
+        var myCenter;
+        
+        
+            current_lng = localStorage.getItem('lng');
+            current_lat = localStorage.getItem('lat');
+
+            myCenter = {lng: current_lng, lat: current_lat}
+            
+            map.centerAndZoom(myCenter,12);
+            map.clearOverlays();
+
+            var geoc = new BMapGL.Geocoder();
+
+            //设置标注的经纬度
+            // 浏览器定位
+            // var geolocation = new BMapGL.Geolocation();
+            // geolocation.getCurrentPosition(function(r){
+            // if(this.getStatus() == BMAP_STATUS_SUCCESS){
+                // alert('您的位置：' + r.point.lng + ',' + r.point.lat);
+                var point = new BMapGL.Point(current_lng, current_lat);
+                var marker = new BMapGL.Marker(point);
+                //把标注添加到地图上
+                map.addOverlay(marker);
+                // 逆地址解析
+                geoc.getLocation(point, function(rs){
+                    var addComp = rs.addressComponents;
+                    // console.log(addComp)
+                    var address = addComp.province + ", " + addComp.city + ", " + addComp.district;
+                    if(addComp.street) address = address + "," + addComp.street;
+                    // if(addComp.streetNumber) address = address + "," + addComp.streetNumber;
+                    $('#result_l').text(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+                    window.parent.postMessage({
+                        lat:point.lat,
+                        lng:point.lng,
+                        address: address
+                    })
+                })
+                // }
+
+
+            // })
+            // 地图上面点击选点
+            map.addEventListener('click', function(e){
+                //清除地图上所有的覆盖物
+                map.clearOverlays();
+                var pt = e.latlng;
+                var marker = new BMapGL.Marker(new BMapGL.Point(pt.lng, pt.lat));
+                // window.parent.postMessage({
+                //   lat:pt.lat,
+                //   lng:pt.lng
+                // })
+                map.addOverlay(marker);
+                // console.log(pt)
+                geoc.getLocation(pt, function(rs){
+                    var addComp = rs.addressComponents;
+                    var address = addComp.province + ", " + addComp.city + ", " + addComp.district;
+                    if(addComp.street) address = address + "," + addComp.street;
+                    // if(addComp.streetNumber) address = address + "," + addComp.streetNumber;
+                    $('#result_l').text(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+                    window.parent.postMessage({
+                        lat:pt.lat,
+                        lng:pt.lng,
+                        address: address
+                    })
+                })
+            })
+
+        // 异步函数，拿到data
+        // myCity.get(function(data){
+            // console.log(data.center)
+            //实例化地图
+            // var map = new BMapGL.Map('container');
+            // map.centerAndZoom(data.center,12);
+            // // 开启地图的滚轮缩放
+            // map.enableScrollWheelZoom(true);
+
+            // var cityCtrl = new BMapGL.CityListControl();  // 左上方，添加城市列表控件
+            // map.addControl(cityCtrl);
+
+            // var geoc = new BMapGL.Geocoder();
+            
+            // //设置标注的经纬度
+            // // 浏览器定位
+            // var geolocation = new BMapGL.Geolocation();
+            // geolocation.getCurrentPosition(function(r){
+            // if(this.getStatus() == BMAP_STATUS_SUCCESS){
+            //     var mk = new BMapGL.Marker(r.point);
+            //     // alert('您的位置：' + r.point.lng + ',' + r.point.lat);
+            //     var marker = new BMapGL.Marker(new BMapGL.Point(r.point.lng, r.point.lat));
+            //     // var point = new BMapGL.Point(pt.lng, pt.lat);
+            //     window.parent.postMessage({
+            //       lat:r.point.lat,
+            //       lng:r.point.lng
+            //     })
+            //     //把标注添加到地图上
+            //     map.addOverlay(marker);
+            //     geoc.getLocation(r.point, function(rs){
+            //         var addComp = rs.addressComponents;
+            //         $('#result_l').text(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+            //     })
+            //     }
+            // })
+            // var pt = {lng: 119.31704596828862, lat: 26.094464893106288};
+
+        //     map.addEventListener('click', function(e){
+        //         //清除地图上所有的覆盖物
+        //         map.clearOverlays();
+        //         var pt = e.latlng;
+        //         var marker = new BMapGL.Marker(new BMapGL.Point(pt.lng, pt.lat));
+        //         window.parent.postMessage({
+        //           lat:pt.lat,
+        //           lng:pt.lng
+        //         })
+        //         map.addOverlay(marker);
+        //         geoc.getLocation(pt, function(rs){
+        //             var addComp = rs.addressComponents;
+        //             $('#result_l').text(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+        //         })
+        //     })
+        // });
+    </script>
+</body>
+</html>

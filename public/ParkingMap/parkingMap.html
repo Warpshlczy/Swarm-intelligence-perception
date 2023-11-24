@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>基于群智感知的街道车位推荐系统</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta http-equiv="Access-Control-Allow-Origin" content="*" />
+  <script crossorigin="anonymous" src="https://cdn.bootcdn.net/ajax/libs/axios/0.19.2/axios.js"></script>
+  <script src="http://api.map.baidu.com/api?type=webgl&v=1.0&ak=62F2287GeubuA5aXAh0pKDIytPwXhhNT"></script>
+  <link rel="stylesheet"
+    href="http://mapopen.cdn.bcebos.com/github/BMapGLLib/DrawingManager/src/DrawingManager.min.css">
+  <script type="text/javascript"
+    src="http://mapopen.cdn.bcebos.com/github/BMapGLLib/DrawingManager/src/DrawingManager.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://api.map.baidu.com/res/webgl/10/bmap.css">
+  <link type="text/css" rel="styleSheet" href="./css/calendar.css" />
+  <link type="text/css" rel="styleSheet" href="./css/colorExample.css" />
+  <link type="text/css" rel="styleSheet" href="./css/scroll.css" />
+  <style>
+    body,
+    html,
+    #container {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: "微软雅黑";
+    }
+
+    #selectRoad {
+      position: absolute;
+      z-index: 999;
+      width: 250px;
+      height: 140px;
+      inset: 40px 0px 0px 40px;
+      background-color: #fff;
+      box-shadow: 5px 5px 5px #888888;
+      padding: 10px;
+    }
+
+    #selectBoxDiv {
+      margin: 10px;
+    }
+
+    .anchorBL a {
+      display: none;
+    }
+
+    .anchorBL img {
+      display: none;
+    }
+
+    .anchorBL span {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <section>
+    <div class="scroll">
+      <p class="jd"></p>
+      <p class="ball"></p>
+    </div>
+    <div class="timeline">
+      <span class="time"></span>
+      <span class="time"></span>
+      <span class="time"></span>
+      <span class="time"></span>
+      <span class="time"></span>
+    </div>
+  </section>
+  <div class="xs-date">
+    <div class="xs-date-title">
+      <div class="date-year-prev">
+        &laquo;
+      </div>
+      <div class="date-prev">
+        &raquo;
+      </div>
+      <div class="date-time">2022年 5月</div>
+      <div class="date-next defaultCursor"> > </div>
+      <div class="date-year-next defaultCursor"> >> </div>
+    </div>
+    <div class="xs-date-week">
+      <div>日</div>
+      <div>一</div>
+      <div>二</div>
+      <div>三</div>
+      <div>四</div>
+      <div>五</div>
+      <div>六</div>
+    </div>
+    <div class="xs-date-day"></div>
+    <div>
+      <button id='minus' onclick="minus()">-</button>
+      <input id="hourPicker" type="text" style="width: 20px;border-radius: 5px;margin: 15px 0 3px 0;"
+        onkeyup="this.value=this.value.replace(/\D/g,'')"
+        oninput="if (value < 0) value = 0; if (value > 23) value = 23">
+      <button id="plus" onclick="plus()">+</button>
+      <span>时</span>
+      <button style="position: relative;right: -70px;" onclick="comfirm()">确定</button>
+      <!-- <button style="position: relative;right: -50px;">取消</button> -->
+    </div>
+  </div>
+  <div class="date" onclick="showTime()"></div>
+  <div class="location">
+    <input id="search" type="text">
+    <button onclick="search()">搜索</button>
+  </div>
+  <div class="example">
+    <div class="oneExample">
+      <span class="noiseNumber">0</span>
+    </div>
+    <div class="oneExample">
+      <span class="noiseNumber">5</span>
+      <div class="noiseColor" style="background-color: rgb(215, 68, 50);"></div>
+    </div>
+    <div class="oneExample">
+      <span class="noiseNumber">10</span>
+      <div class="noiseColor" style="background-color: rgb(228, 152, 76);"></div>
+    </div>
+    <div class="oneExample">
+      <span class="noiseNumber">15</span>
+      <div class="noiseColor" style="background-color: rgb(240, 206, 96);"></div>
+    </div>
+    <div class="oneExample">
+      <span class="noiseNumber" style="color: #fff;">20</span>
+      <div class="noiseColor" style="background-color: rgb(166, 244, 125);"></div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script src="./js/park.js"></script>
+<script src="./js/calendar.js"></script>

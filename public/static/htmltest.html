@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=fin2HA7GCKtt6Mh99wwLB6lLMDT92euK"></script>
+  <script type="text/javascript" src="https://api.map.baidu.com/library/Heatmap/2.0/src/Heatmap_min.js"></script>
+  <title>热力图</title>
+  <!--KYEnH9GwDCRyRV0oUvtXzoGgIQgK0S4G
+  fin2HA7GCKtt6Mh99wwLB6lLMDT92euK
+  fin2HA7GCKtt6Mh99wwLB6lLMDT92euK
+  -->
+  <style type="text/css">
+  html{
+      height: 100%
+  }
+  body{
+      height: 100%;
+      margin: 0px;
+      padding: 0px;
+      font-family: "微软雅黑";
+      background-color: #F8F8F8;
+  }
+
+      /* 头部 */
+  .top{
+      height: 10vh;
+      width: 100%;
+      text-align: center;
+  }
+  #map-name{
+          padding-top: 10px;
+      font-size: 30px;
+  }
+
+      /* 主体时间轴+地图*/
+      .main{
+          display: flex;
+      }
+
+      #timeline-container{
+          height: 80vh;
+      width: 12vw;
+      }
+      .date-area{
+          display: flex;
+          flex-wrap: nowrap;
+          justify-content: center;
+          width: 100%;
+          height: 16vh;
+      }
+      .date-content{
+          display: flex;
+          background: linear-gradient(to right, #F8F8F8 45%, #B5CAA0 45%, #B5CAA0 45%, #F8F8F8 50%);
+          text-align: center;
+          flex-basis: 100px;
+      }
+      .date-content>span{
+          font-size: 15px;
+          margin: auto;
+          background: #F8F8F8;
+          color: #2F4F4F;
+      }
+      .date-content>span:hover{
+          color: #76aef1;
+          cursor: pointer;
+      }
+      .date-content>span:focus{
+          color: #76aef1;
+      }
+
+      #map-container{
+          position: relative;
+      width: 100%;
+          border:1px solid #2F4F4F;
+  }
+
+      /* 底部 */
+  .footer{
+      position:relative;
+      height: 10vh;
+      width: 100%;
+          text-align: center;
+  }
+      #info-copyright{
+          padding-top: 25px;
+      font-size: 5px;
+  }
+      .BMap_bubble_title{
+          font-size:20px;
+      }
+      .BMap_bubble_content{
+          margin-top: 20px;
+      }
+      .anchorBL{ /* 去掉百度标记，百度官方是不允许的 */
+          display:none;
+      }
+  </style>
+
+</head>
+
+<body>
+  <div class="top">
+      <div id="map-name">
+          <font color="#3B6361">福州内河监测主题地图</font>
+      </div>
+  </div>
+
+  <div class="main">
+      <div id="timeline-container">
+          <div class="date-area">
+              <div class="date-content">
+                  <span id="1date" onclick="drawMap(heats1, marks1)"></span>
+              </div>
+          </div>
+          <div class="date-area">
+              <div class="date-content">
+                  <span id="2date" onclick="drawMap(heats2, marks2)"></span>
+              </div>
+          </div>
+          <div class="date-area">
+              <div class="date-content">
+                  <span id="3date" onclick="drawMap(heats3, marks3)"></span>
+              </div>
+          </div>
+          <div class="date-area">
+              <div class="date-content">
+                  <span id="4date" onclick="drawMap(heats4, marks4)"></span>
+              </div>
+          </div>
+          <div class="date-area">
+              <div class="date-content">
+                  <span id="5date" onclick="drawMap(heats5, marks5)"></span>
+              </div>
+          </div>
+      </div>
+
+      <div id="map-container"></div>
+  </div>
+
+  <div class="footer">
+      <div id="info-copyright">
+          <font color="#808080">By FuZhouUniversity 190327050</font>
+      </div>
+  </div>
+
+</body>
+
+</html>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/javascript">
+  //zoom_level = 15;
+  change_count = 15;
+
+  window.onload = sendAjaxGet;
+
+  var map = new BMap.Map("map-container");   // 创建地图实例
+
+  var point = new BMap.Point(119.302938, 26.080447);
+  map.centerAndZoom(point, 12);  // 初始化地图，设置中心点坐标和地图级别
+  map.enableScrollWheelZoom();   // 允许滚轮缩放
+  map.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT}));  // 添加右上角控件
+  map.setMapStyleV2({
+      styleId: 'e7f545926e147f45d6dd1e1d1cfc1df5'
+  });
+
+  // 从数据库中获得数据e7f545926e147f45d6dd1e1d1cfc1df5   fbc5520a144f9ac78272663f4af476ac
+  function sendAjaxGet() {
+      $.ajax({
+          type: "GET",
+          async: false,
+          // url: "http://lxd.ngrok2.xiaomiqiu.cn/getList",
+          success: function(mapdata){
+              result = mapdata;
+          },
+          error: function(message) {
+          }
+      });
+      return result;
+  }
+  var data = sendAjaxGet();
+
+  // 获得今日日期 格式：XXXX-XX-XX
+  function getDate(){
+      var date = new Date;
+      var year = date.getFullYear();
+      var month = (date.getMonth() + 1) < 10 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1);
+  var day = date.getDate() < 10 ? ("0" + date.getDate()) : date.getDate();
+      var today = year + "-" + month + "-" + day ;
+      return today;
+  }
+  var today = getDate();
+
+  // 转换日期格式
+  function transferDate(strDate){
+    strDate = strDate.replace(/:/g, '-');
+    strDate = strDate.replace(/ /g, '-');
+    dtArr = strDate.split("-");
+    if(dtArr.length >= 3 && dtArr.length < 6){
+        date = new Date(dtArr[0], dtArr[1]-1, dtArr[2]);
+    }
+      return date;
+  }
+
+  // 获得天数差 date1较大
+  function getDaysGap(date1, date2){
+      if(date2){
+        var daysgap = transferDate(date1).getTime() - transferDate(date2).getTime();
+        //console.log(daysgap / (1000*60*60*24) );
+        return daysgap / (1000*60*60*24);
+      }
+  }
+
+  // 在span中显示日期
+  function spanShowDate(){
+      var date1 = getStartOrEndDate(-1) + "~" + getStartOrEndDate(0);
+      var date2 = getStartOrEndDate(-3) + "~" + getStartOrEndDate(-2);
+      var date3 = getStartOrEndDate(-5) + "~" + getStartOrEndDate(-4);
+      var date4 = getStartOrEndDate(-7) + "~" + getStartOrEndDate(-6);
+      var date5 = getStartOrEndDate(-9) + "~" + getStartOrEndDate(-8);
+
+      //document.getElementById("DIV名").innerHTML = "你要更新的内容"
+      document.getElementById("1date").innerHTML = date1;
+      document.getElementById("2date").innerHTML = date2;
+      document.getElementById("3date").innerHTML = date3;
+      document.getElementById("4date").innerHTML = date4;
+      document.getElementById("5date").innerHTML = date5;
+  }
+  spanShowDate();
+
+  // 获得距今days天数的日期 -1为一天前 1为一天后
+  function getStartOrEndDate(days){
+  var date1 = new Date();
+  var date2 = new Date(date1);
+  date2.setDate(date1.getDate() + days);
+  var year = date2.getFullYear();
+  var month = (date2.getMonth() + 1) < 10 ? ("0" + (date2.getMonth() + 1)) : (date2.getMonth() + 1);
+  var day = date2.getDate() < 10 ? ("0" + date2.getDate()) : date2.getDate();
+      //console.log(year + "-" + month + "-" + day);
+  return month + "-" + day;
+}
+
+  var heats1 = []; var marks1 = [];
+  var heats2 = []; var marks2 = [];
+  var heats3 = []; var marks3 = [];
+  var heats4 = []; var marks4 = [];
+  var heats5 = []; var marks5 = [];
+
+  // 区分点
+  function divideDays(){
+      for(var i=0;i<data.length;i++){
+          var days = getDaysGap(today, data[i].date);
+          if(days <= 1){
+              var heat = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'count': 1
+              }
+              heats1.push(heat);
+
+              var mark = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'number': data[i].number
+              }
+              marks1.push(mark);
+          }
+          else if(1 < days && days <= 3){
+              var heat = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'count': 1
+              }
+              heats2.push(heat);
+
+              var mark = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'number': data[i].number
+              }
+              marks2.push(mark);
+          }
+          else if(3 < days && days <= 5){
+              var heat = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'count': 1
+              }
+              heats3.push(heat);
+
+              var mark = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'number': data[i].number
+              }
+              marks3.push(mark);
+          }
+          else if(5 < days && days <= 7){
+              var heat = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'count': 1
+              }
+              heats4.push(heat);
+
+              var mark = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'number': data[i].number
+              }
+              marks4.push(mark);
+          }
+          else if(7 < days && days <= 9){
+              var heat = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'count': 1
+              }
+              heats5.push(heat);
+
+              var mark = {
+                  'lng': data[i].longitude,
+                  'lat': data[i].latitude,
+                  'number': data[i].number
+              }
+              marks5.push(mark);
+          }
+      }
+  }
+  divideDays();
+
+  // 绘制
+  function drawMap(heats, marks){
+      map.clearOverlays();
+      var markers = [];
+
+      drawHeatMap(heats);
+      markers = createMarkers(marks);
+      drawMarkers(markers);
+
+      addZoomHandler(marks, markers);
+      addMoveHandler(marks, markers);
+  }
+  drawMap(heats1, marks1);  // 初始显示最新两天
+
+  if(!isSupportCanvas()){
+    alert('热力图目前只支持有canvas支持的浏览器,您所使用的浏览器不能使用热力图功能')
+  }
+
+  // 判断浏览器是否支持canvas
+  function isSupportCanvas(){
+      var elem = document.createElement('canvas');
+      return !!(elem.getContext && elem.getContext('2d'));
+  }
+
+  // 绘制热力图
+  function drawHeatMap(heats){
+      heatmapOverlay = new BMapLib.HeatmapOverlay({"radius":25});
+    map.addOverlay(heatmapOverlay);
+    heatmapOverlay.setDataSet({data:heats, max:5});
+      setGradient();
+  }
+
+  function setGradient(){
+    var gradient = {
+//        0.45: "rgb(0,0,255)",
+//            0.55: "rgb(102, 255, 0)",
+//            0.85: "rgb(255, 170, 0)",
+//            1.0: "rgb(255, 0, 0)"
+          '0.1':'rgba(255, 0, 0,1)',
+      };
+    var colors = document.querySelectorAll("input[type='color']");
+    colors = [].slice.call(colors,0);
+    colors.forEach(function(ele){
+    gradient[ele.getAttribute("data-key")] = ele.value;
+    });
+      heatmapOverlay.setOptions({"gradient":gradient});
+
+//        var map = new BMap.Map("allmap");
+//        var point = new BMap.Point(119.339116,26.057629);
+//        var gc = new BMap.Geocoder();
+//        gc.getLocation(point, function(rs){
+//            var addComp = rs.addressComponents;
+//            alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+//        });
+
+  }
+
+  // 创建标记点数组并为标记点添加点击事件
+  function createMarkers(marks){
+      var markers = [];
+
+      for(var i=0;i<marks.length;i++){
+          var opts = {
+              width : 350,     // 信息窗口宽度
+              height: 170,     // 信息窗口高度
+              title : data[i].content , // 信息窗口标题
+              message:"这里是故宫"
+          }
+
+          if (opts.title == 1){
+              opts.title = "违规内容：丢弃垃圾"
+          }
+          if (opts.title == 2){
+              opts.title = "违规内容：违法排放污水"
+          }
+          if (opts.title == 3){
+              opts.title = "违规内容：张网捕鱼"
+          }
+          if (opts.title == 4){
+              opts.title = "违规内容：违法占用内河岸线"
+          }
+
+          var str_address = data[i].address;
+          var img_url = data[i].image_url;
+
+          var sContent = `<img style='float:right;margin:0 4px 22px' id='imgDemo'` + `src=` + img_url +  `  width='139' height='104'/>`
+            + str_address;
+          //http://localhost:8080/1.jpeg
+          //var infoWindow = new BMap.InfoWindow(data[i].address, opts);  // 创建信息窗口对象
+          var infoWindow = new BMap.InfoWindow(sContent, opts);  // 创建信息窗口对象
+
+          var point = new BMap.Point(marks[i].lng, marks[i].lat);
+          var marker = new BMap.Marker(point);  // 创建标注
+          var shadow = new BMap.Icon("/shadow.png", new BMap.Size(0,0));
+          marker.setShadow(shadow);
+          var url = 'http://fz12345.fuzhou.gov.cn/fzwp/callDetail.jsp?callId=' + marks[i].number;
+          //marker.addEventListener('click', clickEvent(marker, url)); // 添加点击事件
+
+          let p = new BMap.Point(marks[i].lng, marks[i].lat);
+
+          marker.infoWindow = infoWindow;
+          marker.addEventListener('click',function (e) {
+              map.openInfoWindow(e.target.infoWindow, p); //开启信息窗口
+              /*alert(point.lng+point.lat);*/
+          });
+          markers.push(marker);
+      }
+      return markers;
+  }
+
+  // 将标注添加到地图中
+  function drawMarkers(markers){
+      for(var i=0;i<markers.length;i++){
+          map.addOverlay(markers[i]);
+          markers[i].hide();
+      }
+  }
+
+  // 将标注显示
+  function showMarkers(markers){
+      for(var i=0;i<markers.length;i++){
+          markers[i].show();
+      }
+  }
+
+  // 将标注隐藏
+  function hideMarkers(markers){
+      for(var i=0;i<markers.length;i++){
+          //map.removeOverlay(markers[i]);
+          markers[i].hide();
+      }
+  }
+
+  // 添加点击跳转事件
+  function clickEvent(marker, url){
+      /*marker.addEventListener("click",function(){
+          window.open(encodeURI(url),'_blank');
+      });*/
+      //alert("您点击了标注");
+  }
+
+  // 添加缩放事件
+  function addZoomHandler(marks, markers){
+      map.addEventListener("zoomend", function(type){
+          var bounds = map.getBounds();   // 获取地图可视区域
+          var sw = bounds.getSouthWest();  // 获取西南角的经纬度(左下端点)
+          var ne = bounds.getNorthEast();  // 获取东北角的经纬度(右上端点)
+
+          var topLat = ne.lat;  //大
+          var bottomLat = sw.lat; //小
+          var leftLng = sw.lng; //小
+          var rightLng = ne.lng;  //大
+
+          countPoints(topLat, bottomLat, leftLng, rightLng, marks, markers);
+
+          /*
+          var level = map.getZoom();
+          if(level >= zoom_level){
+              drawMarkers(markers);
+              heatmapOverlay.hide();
+          }
+          else if(level < zoom_level){
+              clearMarkers(markers);
+              heatmapOverlay.show();
+          }
+          */
+
+      });
+  }
+
+  // 添加拖动事件
+  function addMoveHandler(marks, markers){
+      map.addEventListener("moveend", function(type){
+          var bounds = map.getBounds();   // 获取地图可视区域
+          var sw = bounds.getSouthWest();  // 获取西南角的经纬度(左下端点)
+          var ne = bounds.getNorthEast();  // 获取东北角的经纬度(右上端点)
+
+          var topLat = ne.lat;  //大
+          var bottomLat = sw.lat; //小
+          var leftLng = sw.lng; //小
+          var rightLng = ne.lng;  //大
+
+          countPoints(topLat, bottomLat, leftLng, rightLng, marks, markers);
+      });
+  }
+
+  // 根据当前可视区域的点数量显示热力图或标记点
+  function countPoints(topLat, bottomLat, leftLng, rightLng, marks, markers){
+      var count = 0;
+      for(var i=0;i<marks.length;i++) {
+          if(bottomLat < marks[i].lat){
+              if(marks[i].lat < topLat){
+                  if(leftLng < marks[i].lng){
+                      if(marks[i].lng < rightLng){
+                          count = count + 1;
+                      }
+                  }
+              }
+          }
+      }
+      if(count <= change_count){
+          showMarkers(markers);
+          heatmapOverlay.hide();
+      }
+      else if(count > change_count){
+          hideMarkers(markers);
+          heatmapOverlay.show();
+      }
+  }
+
+</script>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>FUZHOU</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <script src="http://api.map.baidu.com/api?type=webgl&v=1.0&ak=hlIMPlOmAGq65NyonNFC7o5tSBvI7FF4"></script>
+  <!-- <link rel="stylesheet"
+    href="http://mapopen.cdn.bcebos.com/github/BMapGLLib/DrawingManager/src/DrawingManager.min.css">
+  <script type="text/javascript"
+    src="http://mapopen.cdn.bcebos.com/github/BMapGLLib/DrawingManager/src/DrawingManager.min.js"></script> -->
+  <link rel="stylesheet" href="src/DrawingManager.min.css">
+  <script type="text/javascript" src="src/DrawingManager.js"></script>
+  <!-- <link rel="stylesheet" type="text/css" href="https://api.map.baidu.com/res/webgl/10/bmap.css"> -->
+  <style>
+    body,
+    html,
+    #container {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: "微软雅黑";
+    }
+
+    .BMapGLLib_Drawing1 .BMapGLLib_box {
+      border-right: 1px solid #d2d2d2;
+      float: left;
+      width: 64px;
+      height: 100%;
+      /* background-image: url(http://api.map.baidu.com/library/DrawingManager/1.4/src/bg_drawing_tool.png); */
+      background-image: url(src/bg_drawing_tool.png);
+      cursor: pointer;
+    }
+
+    .BMapGLLib_Drawing2 .BMapGLLib_box {
+      border-right: 1px solid #d2d2d2;
+      float: left;
+      width: 64px;
+      height: 100%;
+      /* background-image: url(http://api.map.baidu.com/library/DrawingManager/1.4/src/bg_drawing_tool.png); */
+      background-image: url(src/bg_cancel_tool.png);
+      cursor: pointer;
+    }
+
+    #select {
+      scale: 0.9;
+      position: absolute;
+      width: 100px;
+      border: #000 solid 1px;
+      border-radius: 5px;
+      background-color: #fff;
+      padding: 5px;
+      left: -30%;
+      top: -30px;
+      display: none;
+    }
+
+    .BMapGLLib_Drawing1:hover #select {
+      display: block;
+    }
+
+    #cancel {
+      scale: 0.9;
+      position: absolute;
+      width: 130px;
+      border: #000 solid 1px;
+      border-radius: 5px;
+      background-color: #fff;
+      padding: 5px;
+      left: 45%;
+      top: -30px;
+      display: none;
+    }
+
+    .BMapGLLib_Drawing2:hover #cancel {
+      display: block;
+    }
+
+    #form1 {
+      position: absolute;
+      z-index: 999;
+      width: 135px;
+      height: 28px;
+      inset: 20px 0px 0px 10px;
+    }
+
+    #selectBox {
+      width: 133px;
+      height: 30px;
+    }
+
+    #selectBlockLen {
+      scale: 0.7;
+      position: absolute;
+      width: 115px;
+      border: #000 solid 1px;
+      border-radius: 5px;
+      background-color: #fff;
+      padding: 5px;
+      left: 3px;
+      top: -25px;
+      display: none;
+    }
+
+    #form1:hover #selectBlockLen {
+      display: block;
+    }
+
+    /* 单独去掉地图下方文字 */
+    .BMap_cpyCtrl {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container"></div>
+  <div id="form1">
+    <form>
+      <div id="selectBoxDiv" style="transform: scale(0.8);">
+        <select id="selectBox" onchange="changeBlockLen1(this)">
+          <option value="0">请选择网格大小</option>
+          <option value="100">100米</option>
+          <option value="200">200米</option>
+          <option value="500" selected="selected">500米</option>
+          <option value="1000">1000米</option>
+          <!-- <option value="2000">2000米</option> -->
+        </select>
+      </div>
+    </form>
+    <span id="selectBlockLen">请选择网格大小</span>
+  </div>
+
+  <div>
+    <div class="BMapGLLib_Drawing1 BMap_noprint anchorTL"
+      style="transform: scale(0.8); position: absolute; z-index: 10; inset: 65px auto auto 17px;">
+      <div class="BMapGLLib_Drawing_panel">
+        <a id="selectbox_Drawing1" class="BMapGLLib_box BMapGLLib_rectangle" href="javascript:void(0)"
+          drawingtype="rectangle" onfocus="this.blur()" onclick="noselect(drawingManager1)"></a>
+      </div>
+      <span id="select">选择矩形区域</span>
+
+    </div>
+    <div class="BMapGLLib_Drawing2 BMap_noprint anchorTL"
+      style="transform: scale(0.8); position: absolute; z-index: 10; inset: 70px auto auto 18px;">
+
+      <a id="selectbox_Drawing2" class="BMapGLLib_box BMapGLLib_rectangle BMapGLLib_last" href="javascript:void(0)"
+        drawingtype="rectangle" onfocus="this.blur()" onclick="noselect(drawingManager2);"></a>
+      <span id="cancel">取消选择矩形区域</span>
+
+    </div>
+
+  </div>
+</body>
+
+</html>
+<script>
+  var map = new BMapGL.Map('container', {
+    enableRotate: false,
+    enableTilt: false
+  });
+
+  (function initMap() {
+    var defaultPoint = new BMapGL.Point(119.30765800085511, 26.08287947759156);
+
+    function setMapCenter(point) {
+      map.centerAndZoom(point, 13);
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        var convertor = new BMapGL.Convertor();
+        var pointArr = [];
+        var gpsPoint = new BMapGL.Point(longitude, latitude);
+        pointArr.push(gpsPoint);
+
+        convertor.translate(pointArr, 1, 5, function (data) {
+          if (data.status === 0) {
+            setMapCenter(data.points[0]);
+            // console.log(data);
+          }
+        });
+      }, function () {
+        console.warn("定位失败，使用默认坐标");
+        setMapCenter(defaultPoint);
+      });
+    } else {
+      console.warn("不支持地理定位，使用默认坐标");
+      setMapCenter(defaultPoint);
+    }
+  })();
+ 
+  map.enableScrollWheelZoom();
+  // map.setMinZoom(12);
+  // 添加比例尺控件
+  var scaleCtrl = new BMapGL.ScaleControl();
+  map.addControl(scaleCtrl);
+  // 添加缩放控件
+  var zoomCtrl = new BMapGL.ZoomControl();
+  map.addControl(zoomCtrl);
+  //用于解决绘制图形时点勾确认的时候会同时点击一下网格多画一块或者少画一块的问题
+  var flag = 0;
+  //不显示POI图标和POI文本
+  // map.setDisplayOptions({
+  //   poiIcon: false,
+  //   poiText: false,
+  //   indoor: false
+  // });
+  //描边
+  // function drawBoundry(area) {
+  //   var bdary = new BMapGL.Boundary();
+  //   bdary.get(area, function (rs) {
+  //     // 绘制行政区
+  //     for (var i = 0; i < rs.boundaries.length; i++) {
+  //       var path = [];
+  //       var xyArr = rs.boundaries[i].split(';');
+  //       var ptArr = [];
+  //       for (var j = 0; j < xyArr.length; j++) {
+  //         var tmp = xyArr[j].split(',');
+  //         var pt = new BMapGL.Point(tmp[0], tmp[1]);
+  //         ptArr.push(pt);
+  //       }
+  //       var mapmask = new BMapGL.MapMask(ptArr, {
+  //         isBuildingMask: true,
+  //         isPoiMask: true,
+  //         isMapMask: true,
+  //         showRegion: 'inside',
+  //         topFillColor: '#5679ea',
+  //         topFillOpacity: 0.5,
+  //         sideFillColor: '#5679ea',
+  //         sideFillOpacity: 0.9
+  //       });
+  //       // map.addOverlay(mapmask);
+  //       var border = new BMapGL.Polyline(ptArr, {
+  //         strokeColor: 'blue',
+  //         strokeWeight: 3,
+  //         strokeOpacity: 1
+  //       });
+  //       map.addOverlay(border);
+  //     }
+  //   });
+  // }
+  // drawBoundry("晋安区");
+  // drawBoundry("台江区");
+  // drawBoundry("仓山区");
+  // drawBoundry("马尾区");
+  // drawBoundry("长乐区");
+  // drawBoundry("晋安区");
+  // drawBoundry("鼓楼区");
+  var marginX = -0.05;
+  var marginY = -0.05;
+  var blockLen = 0.005;
+  var block = blockLen * 100000;
+  // console.log(blockLen);
+  // console.log(block);
+  var mbsw = { lng: 119.10015800085512, lat: 25.90037947759156 },
+    mbne = { lng: 119.5106950598402, lat: 26.2054647640866 };
+  mapBoundary = { x1: mbsw.lng, y1: mbsw.lat, x2: mbne.lng, y2: mbne.lat };
+  var polylineArr = [];
+
+  //绘制网格
+  for (var i = mapBoundary.x1 - marginX; i < mapBoundary.x2 + marginX; i = i + blockLen) {
+    var polyline = new BMapGL.Polyline(
+      [new BMapGL.Point(i, mapBoundary.y1 - marginY), new BMapGL.Point(i, mapBoundary.y2 + marginY)],
+      { strokeColor: 'black', strokeWeight: 0.5, strokeOpacity: 1 }
+    )
+    map.addOverlay(polyline);
+    polylineArr.push(polyline);
+  }
+  for (var i = mapBoundary.y1 - marginY; i < mapBoundary.y2 + marginY; i = i + blockLen) {
+    var polyline = new BMapGL.Polyline(
+      [new BMapGL.Point(mapBoundary.x1 - marginX, i), new BMapGL.Point(mapBoundary.x2 + marginX, i)],
+      { strokeColor: 'black', strokeWeight: 0.5, strokeOpacity: 1 }
+    )
+    map.addOverlay(polyline);
+    polylineArr.push(polyline);
+  }
+  //输出所有被选中的格子中心经纬度
+  var coordinates = [];
+  var coordinatesStr = "";
+  function selectedCoordinate() {
+    let keys = Object.keys(selectedBlocks);
+    coordinates = [];
+    coordinatesStr = "";
+    for (let i = 0; i < keys.length; i++) {
+      let coordinateArr = keys[i].split("_");
+      coordinates[i] = [swLng + (coordinateArr[0] - 0.5) * blockLen + blockLen, swLat + (coordinateArr[1] - 0.5) * blockLen + blockLen];
+      coordinatesStr = coordinatesStr + "(" + coordinates[i] + ");";
+    }
+
+    //传数据给PublishTask.vue
+    window.parent.postMessage({
+      // coordinate: coordinatesStr,
+      coordinate: coordinates,
+      size: block
+    })
+
+  }
+  function changeBlockLen1(item) {
+    coordinates = [];
+    coordinatesStr = "";
+    blockLen = item.value * 0.00001;
+    block = item.value;
+    // console.log(block);
+    for (let i = 0; i < polylineArr.length; i++) {
+      map.removeOverlay(polylineArr[i]);
+    }
+    for (var i = mapBoundary.x1 - marginX; i < mapBoundary.x2 + marginX; i = i + blockLen) {
+      var polyline = new BMapGL.Polyline(
+        [new BMapGL.Point(i, mapBoundary.y1 - marginY), new BMapGL.Point(i, mapBoundary.y2 + marginY)],
+        { strokeColor: 'black', strokeWeight: 0.5, strokeOpacity: 1 }
+      )
+      map.addOverlay(polyline);
+      polylineArr.push(polyline);
+    }
+    for (var i = mapBoundary.y1 - marginY; i < mapBoundary.y2 + marginY; i = i + blockLen) {
+      var polyline = new BMapGL.Polyline(
+        [new BMapGL.Point(mapBoundary.x1 - marginX, i), new BMapGL.Point(mapBoundary.x2 + marginX, i)],
+        { strokeColor: 'black', strokeWeight: 0.5, strokeOpacity: 1 }
+      )
+      map.addOverlay(polyline);
+      polylineArr.push(polyline);
+    }
+    var selectedKeys = Object.keys(selectedBlocks);
+    for (let i = 0; i < selectedKeys.length; i++) {
+      map.removeOverlay(selectedBlocks[selectedKeys[i]]);
+      delete selectedBlocks[selectedKeys[i]];
+    }
+    selectedCoordinate();
+  }
+
+  //限制拖拽区域
+  // var strictBounds = map.getBounds();
+  // map.addEventListener("dragend", function () {
+  //   if (strictBounds.containsPoint(map.getCenter())) return;
+  //   var c = map.getCenter();
+  //   x = c.lng,
+  //     y = c.lat,
+  //     maxX = strictBounds.getNorthEast().lng,
+  //     maxY = strictBounds.getNorthEast().lat,
+  //     minX = strictBounds.getSouthWest().lng,
+  //     minY = strictBounds.getSouthWest().lat;
+  //   if (x < minX) x = minX;
+  //   if (x > maxX) x = maxX;
+  //   if (y < minY) y = minY;
+  //   if (y > maxY) y = maxY;
+  //   map.centerAndZoom(new BMapGL.Point(x, y), map.getZoom());
+  // })
+  //求所点击的格子中心经纬度
+  var swLng = mbsw.lng - marginX;
+  var swLat = mbsw.lat - marginY;
+  function selBlock(lng, lat) {
+    var blockX = Math.trunc((lng - swLng) / blockLen) * blockLen + swLng + (blockLen / 2);
+    var blockY = Math.trunc((lat - swLat) / blockLen) * blockLen + swLat + (blockLen / 2);
+    return [blockX, blockY]
+  }
+  //已被选中的格子的覆盖物
+  var selectedBlocks = {};
+
+  //创建覆盖物方法(一个小格子就会触发一次这个)
+  function createPolygon(X, Y) {
+    var polygon = new BMapGL.Polygon([new BMapGL.Point(X * blockLen + swLng, Y * blockLen + swLat),
+    new BMapGL.Point(X * blockLen + swLng, (Y + 1) * blockLen + swLat),
+    new BMapGL.Point((X + 1) * blockLen + swLng, (Y + 1) * blockLen + swLat),
+    new BMapGL.Point((X + 1) * blockLen + swLng, Y * blockLen + swLat)], { fillColor: "blue", fillOpacity: 0.5, strokeWeight: 0 })
+    return polygon;
+  }
+
+  //单击选择或取消格子
+  map.addEventListener('click', function (e) {
+    let blockX = selBlock(e.latlng.lng, e.latlng.lat)[0];
+    let blockY = selBlock(e.latlng.lng, e.latlng.lat)[1];
+    let X = Math.trunc((e.latlng.lng - swLng) / blockLen);
+    let Y = Math.trunc((e.latlng.lat - swLat) / blockLen);
+    var key = X + "_" + Y;
+    if (flag == 0) {
+
+      // console.log('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+      // console.log('点击方格左下角经纬度：' + (blockX - (blockLen/2)) + ',' + (blockY - (blockLen/2)));
+      // console.log('点击方格中心经纬度:' + blockX + ',' + blockY);
+
+      // 选择格子
+      if (!selectedBlocks[key]) {
+        // console.log(key);
+        var polygon = createPolygon(X, Y);
+        map.addOverlay(polygon);
+        selectedBlocks[key] = polygon;
+      }
+      // 取消格子
+      else {
+        map.removeOverlay(selectedBlocks[key]);
+        delete selectedBlocks[key];
+      }
+      selectedCoordinate();
+    }
+    flag = 0;
+  });
+
+  //矩形选择绘制工具
+  var drawingManager1 = new BMapGLLib.DrawingManager(map, {
+    // isOpen: true, //是否开启绘制模式
+    enableDrawingTool: true, // 是否显示工具栏
+    enableCalculate: true, // 绘制是否进行测距(画线时候)、测面(画圆、多边形、矩形) 
+    enableSorption: true,
+    anchor: BMAP_ANCHOR_TOP_LEFT,
+    drawingToolOptions: {
+      // enableTips: true,
+      customContainer: 'selectbox_Drawing1',
+      hasCustomStyle: true,
+      anchor: BMAP_ANCHOR_TOP_LEFT,
+      offset: new BMapGL.Size(0, 0), // 偏离值
+      drawingModes: [
+        BMAP_DRAWING_RECTANGLE,
+      ]
+    },
+    // enableSorption: true, // 是否开启边界吸附功能
+    // sorptionDistance: 20, // 边界吸附距离
+    // enableGpc: true, // 是否开启延边裁剪功能
+    // enableLimit: true,  // 是否开启超限提示
+    // limitOptions: {
+    //     area: 200000000 // 面积超限值
+    // },
+  });
+  //矩形取消绘制工具
+  var drawingManager2 = new BMapGLLib.DrawingManager(map, {
+    // isOpen: true, //是否开启绘制模式
+    enableDrawingTool: true, // 是否显示工具栏
+    enableCalculate: true, // 绘制是否进行测距(画线时候)、测面(画圆、多边形、矩形) 
+    enableSorption: true,
+    anchor: BMAP_ANCHOR_TOP_LEFT,
+    drawingToolOptions: {
+      // enableTips: true,
+      customContainer: 'selectbox_Drawing2',
+      hasCustomStyle: true,
+      anchor: BMAP_ANCHOR_TOP_LEFT,
+      offset: new BMapGL.Size(65, 0), // 偏离值
+      drawingModes: [
+        BMAP_DRAWING_RECTANGLE,
+      ]
+    }
+  });
+  //绘制工具状态切换
+  function noselect(drawingManager) {
+    if (drawingManager.isOpen) {
+      drawingManager.isopen = false;
+      flag = 0;
+    }
+    else {
+      drawingManager.isopen = true;
+      flag = 1;
+    }
+  }
+
+  var selectedCoordinates = [];
+
+  //矩形选择绘制工具完成事件（矩形内未被选中的格子变为选中）
+  var overlaycomplete1 = function (e) {
+    var overlayPath = e.overlay.getPath();
+    let minLng = overlayPath[0].lng > overlayPath[1].lng ? overlayPath[1].lng : overlayPath[0].lng,
+      maxLng = overlayPath[0].lng < overlayPath[1].lng ? overlayPath[1].lng : overlayPath[0].lng,
+      minLat = overlayPath[2].lat > overlayPath[0].lat ? overlayPath[0].lat : overlayPath[2].lat,
+      maxLat = overlayPath[2].lat < overlayPath[0].lat ? overlayPath[0].lat : overlayPath[2].lat;
+    let west = Math.trunc((minLng - swLng) / blockLen);
+    let east = Math.trunc((maxLng - swLng) / blockLen) + 1;
+    let south = Math.trunc((minLat - swLat) / blockLen);
+    let north = Math.trunc((maxLat - swLat) / blockLen) + 1;
+    //整个大区域的经纬度
+    // console.log("大区域的中心经纬度:" + (swLng + (west + east) / 2 * blockLen) + ',' + (swLat + (south + north) / 2 * blockLen));
+    for (let i = west; i < east; i++) {
+      for (let j = south; j < north; j++) {
+        //每个格子的经纬度
+        // console.log("小格子的中心经纬度:" + (swLng + (i + 0.5) * blockLen) + ',' + (swLat + (j + 0.5) * blockLen));
+        let key = i + "_" + j;
+        if (!selectedBlocks[key]) { // 如果还未被绘制过
+          var polygon = createPolygon(i, j);
+          map.addOverlay(polygon);
+          selectedBlocks[key] = polygon;
+
+          selectedCoordinates.push({ i: i, j: j }); // 缓存polygon太复杂，只保留草稿ij
+        }
+      }
+    }
+
+    debouncedPostMessage(); // 发送数据给Vue进行缓存草稿
+
+    selectedCoordinate();
+    map.removeOverlay(e.overlay);
+  };
+  //矩形取消绘制工具完成事件（矩形内已被选中的格子取消选中）
+  var overlaycomplete2 = function (e) {
+    var overlayPath = e.overlay.getPath();
+    let minLng = overlayPath[0].lng > overlayPath[1].lng ? overlayPath[1].lng : overlayPath[0].lng,
+      maxLng = overlayPath[0].lng < overlayPath[1].lng ? overlayPath[1].lng : overlayPath[0].lng,
+      minLat = overlayPath[2].lat > overlayPath[0].lat ? overlayPath[0].lat : overlayPath[2].lat,
+      maxLat = overlayPath[2].lat < overlayPath[0].lat ? overlayPath[0].lat : overlayPath[2].lat;
+    let west = Math.trunc((minLng - swLng) / blockLen);
+    let east = Math.trunc((maxLng - swLng) / blockLen) + 1;
+    let south = Math.trunc((minLat - swLat) / blockLen);
+    let north = Math.trunc((maxLat - swLat) / blockLen) + 1;
+    for (let i = west; i < east; i++) {
+      for (let j = south; j < north; j++) {
+        let key = i + "_" + j;
+        if (selectedBlocks[key]) {
+          map.removeOverlay(selectedBlocks[key]);
+          delete selectedBlocks[key];
+          selectedCoordinates = selectedCoordinates.filter(coord => !(coord.i === i && coord.j === j));
+        }
+      }
+    }
+    selectedCoordinate();
+    map.removeOverlay(e.overlay);
+  };
+  //添加鼠标绘制工具监听事件，用于获取绘制结果
+  drawingManager1.addEventListener('overlaycomplete', overlaycomplete1);
+  drawingManager2.addEventListener('overlaycomplete', overlaycomplete2);
+
+
+  function debounce(func, wait) {
+    let timeout;
+    return function () {
+      const context = this, args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func.apply(context, args);
+      }, wait);
+    };
+  }
+  const debouncedPostMessage = debounce(() => {
+    window.parent.postMessage({
+      action: 'updateSelectedCoordinates',
+      selectedCoordinates: selectedCoordinates
+    }, '*');
+
+  }, 300);
+
+  // 接收 Vue 发来的草稿，重新生成网格
+  window.addEventListener('message', function (event) {
+    if (event.data.action === 'callSelectedCoordinates') {
+      // console.log("接收缓存");
+      selectedCoordinates = event.data.selectedCoordinates;
+
+      selectedCoordinates.forEach(coord => {
+        let i = coord.i;
+        let j = coord.j;
+        let key = i + "_" + j;
+        if (!selectedBlocks[key]) {
+          let polygon = createPolygon(i, j);
+          map.addOverlay(polygon);
+          selectedBlocks[key] = polygon;
+        }
+      });
+      selectedCoordinate();
+
+    }
+  });
+
+
+
+</script>

@@ -1,0 +1,74 @@
+html,body,#app{
+  height: 100%;
+  width: 100%;
+  min-width: 1280px;
+  padding: 0;
+  margin:0;
+  font-family: '微软雅黑 Bold', '微软雅黑 Regular', '微软雅黑', sans-serif;
+  font-size: 14px;
+}
+
+.el-message {
+  margin-top: 5%;
+  }
+
+.el-breadcrumb{
+  margin-bottom: 15px;
+}
+
+.el-card{
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15) !important;
+  color:#999999;
+}
+.bdtop {
+  border-top: 0.5px solid #e4e7ed;
+  }
+.bdbottom{
+  border-bottom: 0.5px solid #e4e7ed;
+}
+.el-pagination{
+  text-align: center;
+  margin-top: 25px;
+}
+.el-table{
+  margin-top: 15px;
+  font-size: 12px;
+}
+#highlight{
+  margin-left:15px;
+  color:#d9001b;
+  font-size:16px;
+  font-weight: 700;
+}
+#boldtext{
+  font-weight: 700;
+  color: #666;
+  font-size: 16px;
+}
+.boldtext{
+  font-weight: bold;
+  color: #666666;
+}
+#fontstyle1{
+  font-weight: 400;
+  color: #999999;
+  font-size: 14px;
+  line-height: 20px;
+}
+.el-upload-list__item.is-success.focusing .el-icon-close-tip{
+  display: none !important;
+}
+.el-upload-list__item{
+  transition: none !important;
+}
+.el-tooltip__popper{
+  max-width:50%;
+  line-height: 2;
+}
+.el-tooltip__popper,.el-tooltip__popper.is-dark{
+  background:#f5f5f5 !important;
+  color: #303133 !important;
+}
+.el-button--mini, .el-button--small{
+  font-size: 14px;
+}

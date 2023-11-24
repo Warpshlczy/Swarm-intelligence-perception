@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>群智.png">
+    <title>群智感知平台</title>
+    <!-- 引入百度地图api -->
+    <script src="https://api.map.baidu.com/api?v=1.0&type=webgl&ak=hlIMPlOmAGq65NyonNFC7o5tSBvI7FF4"></script>
+    <!-- <script src="./node_modules/_mapvgl@1.0.0-beta.119@mapvgl/dist/mapvgl.min.js"></script> -->
+  </head>
+  <body>
+    <!-- <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript> -->
+    <script>
+      var geolocation = new BMapGL.Geolocation();
+        if(!localStorage.getItem('lng')){
+            geolocation.getCurrentPosition(function(r){
+                localStorage.setItem('lng', r.longitude)
+                localStorage.setItem('lat',r.latitude)
+            })
+        }
+    </script>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>

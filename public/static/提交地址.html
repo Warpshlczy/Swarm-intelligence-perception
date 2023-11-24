@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #result {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 0px 7px;
+            min-width: 300px;
+            height: 70px;
+            line-height: 35px;
+            background: #fff;
+            box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+            border-radius: 7px;
+            z-index: 99;
+        }
+
+        .BMap_cpyCtrl {
+            display: none;
+        }
+
+        /* .anchorBL {
+            display: none;
+        } */
+    </style>
+
+    <!-- 引入百度地图api -->
+    <script src="https://api.map.baidu.com/api?v=1.0&type=webgl&ak=hlIMPlOmAGq65NyonNFC7o5tSBvI7FF4"></script>
+    <!-- <script src="./node_modules/_mapvgl@1.0.0-beta.119@mapvgl/dist/mapvgl.min.js"></script> -->
+    <!-- <script src="https://code.bdstatic.com/npm/jquery@1.12.4/dist/jquery.min.js"></script> -->
+</head>
+
+<body>
+    <div id='container'></div>
+    <div id='result'>
+        提交地点：
+        <div id='result_l'></div>
+    </div>
+    <script>
+        window.addEventListener('message', (event) => {
+            let latitude = event.data.latitude;
+            let longitude = event.data.longitude;
+            // console.log('1235', longitude, latitude)
+            // let latitude = 26;
+            // let longitude = 119;
+            var map = new BMapGL.Map('container', {
+                enableRotate: false,
+                enableTilt: false
+            });
+            map.centerAndZoom(new BMapGL.Point(longitude, latitude), 14);
+            var point = new BMapGL.Point(longitude, latitude);
+            var marker = new BMapGL.Marker(point);        // 创建标注   
+            map.addOverlay(marker);                     // 将标注添加到地图中
+            map.enableScrollWheelZoom();
+            // map.setMinZoom(12);
+            // 添加比例尺控件
+            var scaleCtrl = new BMapGL.ScaleControl();
+            map.addControl(scaleCtrl);
+            // 添加缩放控件
+            var zoomCtrl = new BMapGL.ZoomControl();
+            map.addControl(zoomCtrl);
+            var geoc = new BMapGL.Geocoder();
+            var point = new BMapGL.Point(longitude, latitude);
+            geoc.getLocation(point, function (rs) {
+                var addComp = rs.addressComponents;
+                var address = addComp.province + ", " + addComp.city + ", " + addComp.district;
+                if (addComp.street) address = address + "," + addComp.street;
+                var result = document.getElementById('result_l')
+                result.innerHTML = addComp.province + addComp.city + addComp.district + addComp.street + addComp.streetNumber;
+            })
+        }, false)
+    </script>
+</body>
+
+</html>
