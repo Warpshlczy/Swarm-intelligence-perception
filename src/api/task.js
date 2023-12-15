@@ -44,7 +44,7 @@ export function publishTask(params) {
         // data: JSON.stringify(params),
         data: params,
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
     })
 }
@@ -57,7 +57,7 @@ export function updateTask(params) {
         // data: JSON.stringify(params),
         data: params,
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
     })
 }
@@ -153,6 +153,18 @@ export function getPublisherName(params) {
 export function uploadTaskImages(params, taskId) {
     return axios({
         url: '/task/publish/update/taskImages/' + taskId,
+        method: 'POST',
+        data: params,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+}
+
+// 查询对应经纬度的附近任务
+export function getNearbyTasks(params) {
+    return axios({
+        url: '/task/publish/neighborhood',
         method: 'POST',
         data: params,
         headers: {

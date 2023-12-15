@@ -9,8 +9,8 @@ module.exports = {
         // target: 'http://101.34.16.47:8090',
         // target: 'http://101.34.16.47:6702/',
         // target: 'http://172.20.10.2:8080/',
-        target: 'http://101.34.16.47/v2/api/',
-        // target: 'http://101.34.16.47:3377/',
+        // target: 'http://101.34.16.47/v2/api/',
+        target: 'http://101.34.16.47:3377/',
         ws: true,
         changOrigin: true,
         pathRewrite: {

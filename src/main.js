@@ -9,6 +9,7 @@ import './assets/fonts/iconfont.css'
 import * as compresspic from './assets/js/compresspic.js'
 import print from './assets/js/print.js'
 // import Print from 'vue-print-nb'
+import commentApi from './api2/comment'
 import axios from 'axios'
 import qs from 'qs'
 import { userId } from './utils/config.js'
@@ -18,6 +19,12 @@ import JSEncrypt from 'jsencrypt'
 Vue.prototype.$jsEncrypt = JSEncrypt
 Vue.use(Loading.directive);
 Vue.use(print)
+Vue.prototype.$commentApi = commentApi
+// 百度地图
+import BaiduMap from 'vue-baidu-map'
+Vue.use(BaiduMap, {
+  ak: 'hlIMPlOmAGq65NyonNFC7o5tSBvI7FF4' // API密钥
+});
 
 // 配置axios异步请求方式
 // 配置请求的基准地址
@@ -44,8 +51,8 @@ axios.interceptors.request.use(config => {
     return Promise.reject(error)
   })
 
- // respone拦截器
-  axios.interceptors.response.use(
+// respone拦截器
+axios.interceptors.response.use(
   response => {
     // console.log(response.data)
     // 在status正确的情况下，code不正确则返回对应的错误信息（后台自定义为200是正确，并且将错误信息写在message），正确则返回响应
@@ -76,10 +83,10 @@ axios.interceptors.request.use(config => {
         //   })
         // }
         // this.$store.commit('set_token', '')
-          // localStorage.setItem(
-          //   'token',
-          //   ''
-          // )
+        // localStorage.setItem(
+        //   'token',
+        //   ''
+        // )
         // console.log('this.$store', localStorage)
         // console.log('0123')
         // // console.log('在respone拦截器显示错误：', response.data)
@@ -106,7 +113,7 @@ axios.interceptors.request.use(config => {
   }
 )
 
-  // 写不动 死在了根据id获取用户信息，后端用的是post请求，直接进到了请求拦截器里面
+// 写不动 死在了根据id获取用户信息，后端用的是post请求，直接进到了请求拦截器里面
 //   // respone拦截器
 //   axios.interceptors.response.use(
 //   response => {

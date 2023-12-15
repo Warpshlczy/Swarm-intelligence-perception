@@ -19,18 +19,22 @@
           ></iframe>
         </el-tab-pane>
         <el-tab-pane label="停车位地图" name="parkingMap">
-          <span slot="label" class="fontClass">停车位地图</span>
+          <span slot="label" class="fontClass">地区分布图</span>
           <!-- 未来如果引入新的地图可以参考这个进行封装，
           不要直接在这个页面又引入iframe，耦合度过高了 -->
-          <ParkingMap v-if='activeTab==="parkingMap"' />
+          <ParkingMap v-if="activeTab === 'parkingMap'" />
         </el-tab-pane>
         <el-tab-pane label="噪声监测图">
-          <span slot="label" class="fontClass">噪声监测图</span>
+          <span slot="label" class="fontClass">空气质量图</span>
           <el-empty description="暂无数据"></el-empty>
         </el-tab-pane>
         <el-tab-pane label="空气质量图">
-          <span slot="label" class="fontClass">空气质量图</span>
+          <span slot="label" class="fontClass">天气显示图</span>
           <el-empty description="暂无数据"></el-empty>
+        </el-tab-pane>
+        <el-tab-pane label="附近任务图">
+          <span slot="label" class="fontClass">附近任务图</span>
+          <NearbyTasksMap />
         </el-tab-pane>
         <!-- <el-tab-pane label="花见展示图">
           <span slot="label" class="fontClass">花见展示图</span>
@@ -46,9 +50,12 @@
 
 <script>
 import ParkingMap from "../ParkingMap.vue";
+import NearbyTasksMap from "./NearbyTasksMap.vue";
+
 export default {
   components: {
     ParkingMap,
+    NearbyTasksMap,
   },
   data() {
     return {

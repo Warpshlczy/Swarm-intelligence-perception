@@ -14,7 +14,7 @@ export function userRegister(params) {
         method: 'POST',
         data: JSON.stringify(params),
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
     })
 }
@@ -26,7 +26,7 @@ export function userLoginByPassword(params) {
         method: 'POST',
         data: JSON.stringify(params),
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
     })
 }
@@ -38,7 +38,7 @@ export function userLoginByCode(params) {
         method: 'POST',
         data: JSON.stringify(params),
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
     })
 }
@@ -50,17 +50,17 @@ export function userLogout(params) {
         method: 'POST',
         data: JSON.stringify(params),
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
     })
 }
 
 // 获取用户信息
-export function getUserInfo(params) {
+export function getUserInfo() {
     return axios({
         url: '/user/current',
         method: 'POST',
-        data: JSON.stringify(params)
+
     })
 }
 
@@ -91,7 +91,7 @@ export function updateIcon(params, userId) {
         method: 'POST',
         data: params,
         headers: {
-          'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         }
         // data: JSON.stringify(params)
     })
@@ -116,6 +116,6 @@ export function sendCode(params) {
         data: JSON.stringify(params),
         headers: {
             'Content-Type': 'application/json'
-          }
+        }
     })
 }
